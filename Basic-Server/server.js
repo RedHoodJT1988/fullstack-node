@@ -1,4 +1,5 @@
 // import statements
+const fs = require('fs');
 const http = require('http');
 const querystring = require('querystring');
 
@@ -46,11 +47,19 @@ const respondEcho = (req, res) => {
     )
 }
 
+const respondStatic = (req, res) => {
+    const filename = `${__dirname}/public${req.url.split('/static')[1]}`;
+    fs.createReadStream(filename)
+        .on('error', () => respondNotFound(req, res))
+        .pipe(res)
+}
+
 // create the server and respond with a message
 const server = http.createServer(function (req, res) {
     if (req.url === '/') return respondText(req, res);
     if (req.url === '/json') return respondJson(req, res);
     if (req.url.match(/^\/echo/)) return respondEcho(req, res);
+    if (req.url.match(/^\/static/)) return respondStatic(req, res)
 
     respondNotFound(req, res);
 });
